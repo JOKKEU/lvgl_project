@@ -293,7 +293,7 @@ int display_init(struct _DISPLAY* display, struct _FILE_STATE* fs)
 		(void*)display
 	);
 	display->butts.label_for_change_page = lv_label_create(display->butts.button_change_page);
-	lv_obj_set_style_text_font(display->butts.label_for_change_page, &aovel_sans_rounded_font, 0);
+	lv_obj_set_style_text_font(display->butts.label_for_change_page, &roboto_mono, 0);
 	lv_label_set_text(display->butts.label_for_change_page, "Page");
 	lv_obj_center(display->butts.label_for_change_page);
 	
@@ -311,7 +311,7 @@ int display_init(struct _DISPLAY* display, struct _FILE_STATE* fs)
 	lv_obj_add_flag(display->butts.button_change_page, LV_OBJ_FLAG_HIDDEN);
 	lv_label_set_text(display->butts.label_file_info, "");
     	lv_label_set_long_mode(display->butts.label_file_info, LV_LABEL_LONG_WRAP);
-    	lv_obj_set_style_text_font(display->butts.label_file_info, &aovel_sans_rounded_font, 0);
+    	lv_obj_set_style_text_font(display->butts.label_file_info, &roboto_mono, 0);
     	lv_obj_set_style_text_color(display->butts.label_file_info, lv_color_black(), LV_PART_MAIN);
     	
 	
@@ -341,7 +341,7 @@ int display_init(struct _DISPLAY* display, struct _FILE_STATE* fs)
     	lv_obj_align_to(display->butts.hex_content_label, display->butts.button_open_file, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 10);
     	lv_label_set_text(display->butts.hex_content_label, "No file loaded.");
     	lv_label_set_long_mode(display->butts.hex_content_label, LV_LABEL_LONG_WRAP);
-    	lv_obj_set_style_text_font(display->butts.hex_content_label, &aovel_sans_rounded_font, 0);
+    	lv_obj_set_style_text_font(display->butts.hex_content_label, &roboto_mono, 0);
     	lv_obj_set_style_text_color(display->butts.hex_content_label, lv_color_black(), LV_PART_MAIN);
 
     	lv_group_add_obj(display->media_drv->hex_viewer_group, display->butts.hex_content_label);
