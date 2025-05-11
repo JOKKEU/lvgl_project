@@ -4,7 +4,7 @@
 #include "../hd/shared_header.h"
 #include "lvgl/lvgl.h"
 #include <SDL2/SDL.h>
-
+#include "../hd/roboto_mono.h"
 
 #define STANDART_HEIGHT 	800
 #define STANDART_WIDTH  	1200
