@@ -205,7 +205,7 @@ int display_init(struct _DISPLAY* display, struct _FILE_STATE* fs)
 	display->butts.hex_content_label = lv_label_create(display->butts.hex_content_label);
 	if (display->butts.hex_content_label == NULL) 
 	{
-		 ERR("КРИТИЧЕСКАЯ ОШИБКА: 'display->butts.hex_content_label' равен NULL прямо перед lv_obj_add_event_cb!\n");
+		 ERR("Critical error: 'display->butts.hex_content_label' equal NULL before lv_obj_add_event_cb!\n");
 		 abort(); 
     	}
     	
@@ -293,7 +293,7 @@ int display_init(struct _DISPLAY* display, struct _FILE_STATE* fs)
 		(void*)display
 	);
 	display->butts.label_for_change_page = lv_label_create(display->butts.button_change_page);
-	lv_obj_set_style_text_font(display->butts.label_for_change_page, &lv_font_montserrat_20, 0);
+	lv_obj_set_style_text_font(display->butts.label_for_change_page, &aovel_sans_rounded_font, 0);
 	lv_label_set_text(display->butts.label_for_change_page, "Page");
 	lv_obj_center(display->butts.label_for_change_page);
 	
@@ -311,7 +311,7 @@ int display_init(struct _DISPLAY* display, struct _FILE_STATE* fs)
 	lv_obj_add_flag(display->butts.button_change_page, LV_OBJ_FLAG_HIDDEN);
 	lv_label_set_text(display->butts.label_file_info, "");
     	lv_label_set_long_mode(display->butts.label_file_info, LV_LABEL_LONG_WRAP);
-    	lv_obj_set_style_text_font(display->butts.label_file_info, &lv_font_montserrat_20, 0);
+    	lv_obj_set_style_text_font(display->butts.label_file_info, &aovel_sans_rounded_font, 0);
     	lv_obj_set_style_text_color(display->butts.label_file_info, lv_color_black(), LV_PART_MAIN);
     	
 	
@@ -341,7 +341,7 @@ int display_init(struct _DISPLAY* display, struct _FILE_STATE* fs)
     	lv_obj_align_to(display->butts.hex_content_label, display->butts.button_open_file, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 10);
     	lv_label_set_text(display->butts.hex_content_label, "No file loaded.");
     	lv_label_set_long_mode(display->butts.hex_content_label, LV_LABEL_LONG_WRAP);
-    	lv_obj_set_style_text_font(display->butts.hex_content_label, &lv_font_montserrat_20, 0);
+    	lv_obj_set_style_text_font(display->butts.hex_content_label, &aovel_sans_rounded_font, 0);
     	lv_obj_set_style_text_color(display->butts.hex_content_label, lv_color_black(), LV_PART_MAIN);
 
     	lv_group_add_obj(display->media_drv->hex_viewer_group, display->butts.hex_content_label);
@@ -354,6 +354,8 @@ int display_init(struct _DISPLAY* display, struct _FILE_STATE* fs)
    	lv_group_add_obj(display->media_drv->keyboard->group, display->butts.button_close);
 
    	lv_indev_set_group(display->media_drv->mouse->encoder_indev, display->media_drv->hex_viewer_group);
+   	//lv_indev_set_group(display->media_drv->keyboard->keyboard_indev, display->media_drv->hex_viewer_group);
+ 
    	
    	
 	LOG("Display initialized successfully\n");
@@ -664,8 +666,19 @@ void button_change_page_handler(lv_event_t* event)
    	
    	LOG("Adding textarea %p to group %p\n", (void*)ta, (void*)display->media_drv->keyboard->group);
     	lv_group_add_obj(display->media_drv->keyboard->group, ta); 
+    	lv_group_add_obj(display->media_drv->keyboard->group, ok_btn);
     	lv_group_add_obj(display->media_drv->keyboard->group, cancel_btn);
     	lv_group_add_obj(display->media_drv->keyboard->group, kb);
+    	
+    	if (display->media_drv && display->media_drv->keyboard && display->media_drv->keyboard->keyboard_indev && display->media_drv->keyboard->group) 
+    	{
+        	lv_indev_set_group(display->media_drv->keyboard->keyboard_indev, display->media_drv->keyboard->group);
+        	LOG("Keyboard indev group set to DIALOG group: %p\n", (void*)display->media_drv->keyboard->group);
+    	} 
+    	else 
+    	{
+        	ERR("Failed to set keyboard indev group for dialog - critical components missing!\n");
+    	}
     	
     	lv_group_focus_obj(ta);
     	LOG("Focused object is now: %p\n", (void*)lv_group_get_focused(display->media_drv->keyboard->group));
@@ -983,6 +996,8 @@ void hex_label_event_handler(lv_event_t* event)
              	(key == LV_KEY_NEXT) ? "LV_KEY_NEXT" :
              	(key == LV_KEY_PREV) ? "LV_KEY_PREV" :
              	(key == LV_KEY_UP) ? "LV_KEY_UP" :
+             	(key == LV_KEY_HOME) ? "LV_KEY_HOME" :
+             	(key == LV_KEY_END) ? "LV_KEY_END" :
              	(key == LV_KEY_DOWN) ? "LV_KEY_DOWN" : "Other");
 
         	size_t current_page = display->fs->current_page;
@@ -1355,31 +1370,37 @@ static void cleanup_dialog_resources(struct dialog_window_for_data_file* dlg_dat
     	
     	
     	if (dlg_data && dlg_data->display && dlg_data->display->butts.hex_content_label &&
-        		lv_obj_is_valid(dlg_data->display->butts.hex_content_label) &&
-        		dlg_data->display->media_drv && dlg_data->display->media_drv->hex_viewer_group)
+        	lv_obj_is_valid(dlg_data->display->butts.hex_content_label) &&
+        	dlg_data->display->media_drv && dlg_data->display->media_drv->hex_viewer_group &&
+        	dlg_data->display->media_drv->keyboard && dlg_data->display->media_drv->keyboard->keyboard_indev)
     	{
-        	lv_group_focus_obj(dlg_data->display->butts.hex_content_label);
-        	lv_indev_set_group(dlg_data->display->media_drv->mouse->encoder_indev, dlg_data->display->media_drv->hex_viewer_group);
+		lv_indev_set_group(dlg_data->display->media_drv->keyboard->keyboard_indev, dlg_data->display->media_drv->hex_viewer_group); 
+		lv_indev_set_group(dlg_data->display->media_drv->mouse->encoder_indev, dlg_data->display->media_drv->hex_viewer_group);     
 
-        	LOG("Focus explicitly set to hex label (%p) in hex group (%p).\n",
-            		(void*)dlg_data->display->butts.hex_content_label,
-            		(void*)dlg_data->display->media_drv->hex_viewer_group);
+		
+		lv_group_focus_obj(dlg_data->display->butts.hex_content_label);
+
+		LOG("Focus explicitly set to hex label (%p) in hex group (%p). Keyboard and mouse indev groups also set to hex_viewer_group.\n",
+		    (void*)dlg_data->display->butts.hex_content_label,
+		    (void*)dlg_data->display->media_drv->hex_viewer_group);
     	} 
     	else 
     	{
 
-        if (dlg_data && dlg_data->display && dlg_data->display->media_drv && dlg_data->display->media_drv->keyboard && dlg_data->display->media_drv->keyboard->group) 
+        if (dlg_data && dlg_data->display && dlg_data->display->media_drv &&
+            	dlg_data->display->media_drv->keyboard && dlg_data->display->media_drv->keyboard->group && 
+            	dlg_data->display->media_drv->keyboard->keyboard_indev)
         {
-             if (dlg_data->display->butts.button_open_file && lv_obj_is_valid(dlg_data->display->butts.button_open_file)) 
-             {
-             
-                 lv_group_focus_obj(dlg_data->display->butts.button_open_file);
-                 LOG("Focus set back to File button (fallback).\n");
-             } 
-             else 
-             {
-                 LOG("Could not set focus (fallback).\n");
-             }
+        	lv_indev_set_group(dlg_data->display->media_drv->keyboard->keyboard_indev, dlg_data->display->media_drv->keyboard->group); 
+            	if (dlg_data->display->butts.button_open_file && lv_obj_is_valid(dlg_data->display->butts.button_open_file))
+            	{
+                	lv_group_focus_obj(dlg_data->display->butts.button_open_file);
+                	LOG("Focus set back to File button (fallback). Keyboard indev group set to default button group.\n");
+            	} 
+             	else 
+             	{
+                	LOG("Could not set focus (fallback).\n");
+             	}
         }
     }
 
@@ -1475,7 +1496,6 @@ static void dialog_textarea_event_cb(lv_event_t* event)
         	const char *filename = lv_textarea_get_text(user_data->text);
         	LOG("Filename entered: %s\n", filename ? filename : "<empty>");
 
-        	bool file_processed_ok = false; 
 
        
         	if (filename && strlen(filename) > 0)
@@ -1496,7 +1516,7 @@ static void dialog_textarea_event_cb(lv_event_t* event)
 						    	 ERR("Failed to display first page.");
 							 lv_label_set_text(user_data->display->butts.hex_content_label, "Error displaying data.");
 						    }
-						    file_processed_ok = true; 
+						    
 						    lv_obj_clear_flag(user_data->display->butts.button_change_page, LV_OBJ_FLAG_HIDDEN);
 						    lv_obj_clear_flag(user_data->display->butts.label_file_info, LV_OBJ_FLAG_HIDDEN);
 						    
@@ -1508,7 +1528,7 @@ static void dialog_textarea_event_cb(lv_event_t* event)
 						    lv_label_set_text(user_data->display->butts.hex_content_label, "Error: Failed to load data.");
 						}
 
-                				user_data->display->fs->data_file = NULL;
+                				//user_data->display->fs->data_file = NULL;
                 	}
                 	
             		
@@ -1529,6 +1549,10 @@ static void dialog_textarea_event_cb(lv_event_t* event)
        
 
         	LOG("Processing complete for LV_EVENT_READY. Cleaning up dialog...\n");
+		if (user_data) 
+		{
+			cleanup_dialog_resources(user_data); 
+		}
         	
         
 
@@ -1538,6 +1562,7 @@ static void dialog_textarea_event_cb(lv_event_t* event)
          	LOG("Textarea LV_EVENT_CANCEL received. Cleaning up dialog...\n");
          	cleanup_dialog_resources(user_data);
     	}
+
     	else if (code == LV_EVENT_DELETE)
     	{
         
@@ -1555,6 +1580,23 @@ static void dialog_textarea_event_cb(lv_event_t* event)
          	}
     	}
 
+}
+
+
+static void dialog_ok_event_cb(lv_event_t* event) 
+{
+	lv_event_code_t code = lv_event_get_code(event);
+    	struct dialog_window_for_data_file* dialog_data = (struct dialog_window_for_data_file*)lv_event_get_user_data(event);
+
+   	 if (code == LV_EVENT_CLICKED)
+   	 {
+		LOG("dialog event: OK clicked.\n");
+		if (dialog_data)
+		{
+			cleanup_dialog_resources(dialog_data);
+		}
+		
+    	}
 }
 
 
@@ -1630,7 +1672,7 @@ void button_open_file_handler(lv_event_t* event)
 	dialog_window->display = display;
 	
 	
-	//lv_obj_add_event_cb(ok_btn, dialog_ok_event_cb, LV_EVENT_CLICKED, dialog_window);
+	lv_obj_add_event_cb(ok_btn, dialog_ok_event_cb, LV_EVENT_CLICKED, dialog_window);
    	lv_obj_add_event_cb(cancel_btn, dialog_cancel_event_cb, LV_EVENT_CLICKED, dialog_window);
    	lv_obj_add_event_cb(ta, dialog_textarea_event_cb, LV_EVENT_ALL, dialog_window);
    	
@@ -1639,8 +1681,20 @@ void button_open_file_handler(lv_event_t* event)
     	lv_group_add_obj(display->media_drv->keyboard->group, cancel_btn);
     	lv_group_add_obj(display->media_drv->keyboard->group, kb);
     	
-    	lv_group_focus_obj(ta);
-    	LOG("Focused object is now: %p\n", (void*)lv_group_get_focused(display->media_drv->keyboard->group));
+    	
+    	if (display->media_drv && display->media_drv->keyboard && display->media_drv->keyboard->keyboard_indev && display->media_drv->keyboard->group) 
+    	{
+        	lv_indev_set_group(display->media_drv->keyboard->keyboard_indev, display->media_drv->keyboard->group);
+        	LOG("Keyboard indev group set to DIALOG group: %p\n", (void*)display->media_drv->keyboard->group);
+    	} 
+    	else 
+    	{
+        	ERR("Failed to set keyboard indev group for dialog - critical components missing!\n");
+    	}
+
+    	lv_group_focus_obj(ta); 
+    	LOG("Focused object in dialog group is now: %p\n", (void*)lv_group_get_focused(display->media_drv->keyboard->group));
+    	
 	
 	
 }
@@ -1650,7 +1704,6 @@ void button_for_close(lv_event_t* event)
 	LOG("Cliecked on button close!\n");
 	exit(EXIT_SUCCESS);
 }
-
 
 
 
