@@ -74,21 +74,7 @@ int getting_bytes_from_a_file(struct _FILE_STATE* fs, size_t page_index)
 		return EXIT_FAILURE;
     	}
     	
-    	if (!fs->data_file) 
-    	{
-		LOG("File not opened, attempting to open: %s\n", fs->filename ? fs->filename : "NULL");
-		if (!fs->filename) 
-		{
-			ERR("fs->filename is NULL, cannot open file.\n");
-		    	return EXIT_FAILURE;
-		}
-		fs->data_file = fopen(fs->filename, "r+b"); 
-		if (!fs->data_file) 
-		{
-			ERR("Error opening file '%s': %s\n", fs->filename, strerror(errno));
-		    	return EXIT_FAILURE;
-		}
-    	}
+    	
 
 
     
@@ -226,39 +212,4 @@ int open_file(struct _FILE_STATE* fs, const char* filename)
 	CALL_INIT_FILE_STATE(fs, filename);
 	return EXIT_SUCCESS;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
